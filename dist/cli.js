@@ -9,7 +9,7 @@ const { version } = require("../package.json");
 const client = new HackerNewsClient();
 const program = new Command();
 program
-    .name("hncli")
+    .name("hn-get")
     .description("Agent-friendly Hacker News CLI")
     .version(version)
     .showHelpAfterError()

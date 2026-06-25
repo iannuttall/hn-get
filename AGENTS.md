@@ -1,6 +1,6 @@
-# Agent guide for hncli
+# Agent guide for hn-get
 
-This repo is a TypeScript npm package for the `hncli` command. It fetches Hacker News data for agents and terminal users.
+This repo is a TypeScript npm package for the `hn-get` command. It fetches Hacker News data for agents and terminal users.
 
 Default output is JSON. Keep that contract stable unless the user asks for a breaking change.
 

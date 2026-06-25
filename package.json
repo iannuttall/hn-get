@@ -1,5 +1,5 @@
 {
-  "name": "hncli",
+  "name": "hn-get",
   "version": "0.1.0",
   "description": "Agent-friendly Hacker News CLI for search, stories, comments, users, and live HN lists.",
   "author": "Ian Nuttall",
@@ -7,7 +7,7 @@
   "type": "module",
   "packageManager": "pnpm@11.8.0",
   "bin": {
-    "hncli": "dist/cli.js"
+    "hn-get": "dist/cli.js"
   },
   "files": [
     "dist/",
@@ -24,12 +24,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/iannuttall/hncli.git"
+    "url": "git+https://github.com/iannuttall/hn-get.git"
   },
   "bugs": {
-    "url": "https://github.com/iannuttall/hncli/issues"
+    "url": "https://github.com/iannuttall/hn-get/issues"
   },
-  "homepage": "https://github.com/iannuttall/hncli#readme",
+  "homepage": "https://github.com/iannuttall/hn-get#readme",
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/cli.ts",

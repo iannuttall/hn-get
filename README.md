@@ -1,6 +1,6 @@
-# hncli
+# hn-get
 
-`hncli` is a Hacker News CLI for agents, scripts, and terminal use.
+`hn-get` is a Hacker News CLI for agents, scripts, and terminal use.
 
 It fetches stories, comments, users, live lists, favorites, jobs, and search results. JSON is the default output because agents should not have to scrape terminal text. Markdown and text output are there when you want something easier to read.
 
@@ -9,34 +9,34 @@ The CLI uses two public data sources.
 - Hacker News Firebase API for live items, users, and official story lists.
 - Algolia Hacker News Search API for full-text search, author feeds, comments, and older posts.
 
-## How to install hncli
+## Install hn-get
 
 ```bash
-npx hncli help
-npm install -g hncli
+npx hn-get help
+npm install -g hn-get
 ```
 
 ## Start with these commands
 
 ```bash
-hncli frontpage --limit 30
-hncli search "sqlite" --limit 10
-hncli search "vector database" --sort points --since 30d
-hncli show --sort points --since 30d --limit 20
-hncli item 40956979 --comments --depth 2 --comments-limit 20
-hncli user pg
-hncli comments "react compiler" --limit 10
-hncli whoishiring jobs --limit 20
+hn-get frontpage --limit 30
+hn-get search "sqlite" --limit 10
+hn-get search "vector database" --sort points --since 30d
+hn-get show --sort points --since 30d --limit 20
+hn-get item 40956979 --comments --depth 2 --comments-limit 20
+hn-get user pg
+hn-get comments "react compiler" --limit 10
+hn-get whoishiring jobs --limit 20
 ```
 
 ## Search and filter Hacker News
 
 ```bash
-hncli search "sqlite"
-hncli comments "sqlite"
-hncli search "llm" --type story --points 100 --comments 20
-hncli search "postgres" --since 2025-01-01 --until 2025-12-31
-hncli show --sort points --points 100 --comments 20
+hn-get search "sqlite"
+hn-get comments "sqlite"
+hn-get search "llm" --type story --points 100 --comments 20
+hn-get search "postgres" --since 2025-01-01 --until 2025-12-31
+hn-get show --sort points --points 100 --comments 20
 ```
 
 Search and section commands default to newest first. That is usually the closest match to the live site feed. Use `--sort points` when you want popular posts.
@@ -52,27 +52,27 @@ Dates accept ISO dates or relative durations.
 ## Browse live lists and sections
 
 ```bash
-hncli top
-hncli newest
-hncli frontpage
-hncli best
-hncli active
-hncli ask
-hncli show
-hncli jobs
-hncli polls
-hncli launches
-hncli bestcomments
+hn-get top
+hn-get newest
+hn-get frontpage
+hn-get best
+hn-get active
+hn-get ask
+hn-get show
+hn-get jobs
+hn-get polls
+hn-get launches
+hn-get bestcomments
 ```
 
 ## Read stories and comments
 
 ```bash
-hncli item 40956979
-hncli item 40956979 --comments
-hncli item 40956979 --feed
-hncli item-comments 40956979 "sqlite"
-hncli replies 40956979
+hn-get item 40956979
+hn-get item 40956979 --comments
+hn-get item 40956979 --feed
+hn-get item-comments 40956979 "sqlite"
+hn-get replies 40956979
 ```
 
 `item` returns the Firebase item by default. Add `--comments` when you want a bounded comment tree. Add `--feed` when you want searchable comment results for that item.
@@ -80,21 +80,21 @@ hncli replies 40956979
 ## Get user activity
 
 ```bash
-hncli user pg
-hncli user pg --feed
-hncli submitted pg
-hncli threads pg
-hncli replies pg
-hncli favorites pg
+hn-get user pg
+hn-get user pg --feed
+hn-get submitted pg
+hn-get threads pg
+hn-get replies pg
+hn-get favorites pg
 ```
 
 ## Search hiring threads
 
 ```bash
-hncli whoishiring
-hncli whoishiring jobs
-hncli whoishiring hired
-hncli whoishiring freelance
+hn-get whoishiring
+hn-get whoishiring jobs
+hn-get whoishiring hired
+hn-get whoishiring freelance
 ```
 
 ## Choose an output format
@@ -102,11 +102,11 @@ hncli whoishiring freelance
 Default output is pretty JSON.
 
 ```bash
-hncli search "rust" --format json
-hncli frontpage --format compact
-hncli newest --format ndjson
-hncli show --sort points --format markdown
-hncli item 40956979 --comments --format text
+hn-get search "rust" --format json
+hn-get frontpage --format compact
+hn-get newest --format ndjson
+hn-get show --sort points --format markdown
+hn-get item 40956979 --comments --format text
 ```
 
 The output formats are:
@@ -124,9 +124,9 @@ The output formats are:
 Help is available at root and for every subcommand.
 
 ```bash
-hncli help
-hncli help search
-hncli item --help
+hn-get help
+hn-get help search
+hn-get item --help
 ```
 
 ## Limits that keep commands safe

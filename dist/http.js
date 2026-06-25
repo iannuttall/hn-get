@@ -1,7 +1,7 @@
 const RETRY_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_RETRIES = 2;
-const DEFAULT_USER_AGENT = "hncli/0.1 (+https://github.com/iannuttall/hncli)";
+const DEFAULT_USER_AGENT = "hn-get/0.1 (+https://github.com/iannuttall/hn-get)";
 export class HttpError extends Error {
     url;
     status;
