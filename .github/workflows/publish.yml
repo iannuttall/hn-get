@@ -1,0 +1,70 @@
+name: publish
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish.yml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "tsconfig.json"
+      - "src/**"
+      - "skills/**"
+      - "tests/**"
+      - "README.md"
+      - "LICENSE"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+          cache: pnpm
+
+      - name: Use latest pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
+          pnpm --version
+
+      - name: Use latest npm
+        run: npm install -g npm@latest
+
+      - name: Check package version
+        id: version
+        run: |
+          LOCAL=$(node -p "require('./package.json').version")
+          REMOTE=$(npm view hncli version 2>/dev/null || echo "0.0.0")
+          echo "local=$LOCAL" >> "$GITHUB_OUTPUT"
+          echo "remote=$REMOTE" >> "$GITHUB_OUTPUT"
+          if [ "$LOCAL" != "$REMOTE" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test package
+        run: pnpm test
+
+      - name: Lint package
+        run: pnpm run lint
+
+      - name: Check package contents
+        run: pnpm pack --dry-run
+
+      - name: Publish to npm
+        if: steps.version.outputs.changed == 'true'
+        run: npm publish --access public --provenance

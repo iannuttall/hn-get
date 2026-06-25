@@ -1,0 +1,76 @@
+const RETRY_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
+const DEFAULT_TIMEOUT_MS = 10_000;
+const DEFAULT_RETRIES = 2;
+const DEFAULT_USER_AGENT = "hncli/0.1 (+https://github.com/iannuttall/hncli)";
+export class HttpError extends Error {
+    url;
+    status;
+    constructor(message, url, status) {
+        super(message);
+        this.url = url;
+        this.status = status;
+    }
+}
+export class HttpClient {
+    timeoutMs;
+    retries;
+    userAgent;
+    constructor(options = {}) {
+        this.timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+        this.retries = options.retries ?? DEFAULT_RETRIES;
+        this.userAgent = options.userAgent ?? DEFAULT_USER_AGENT;
+    }
+    async getJson(url) {
+        const response = await this.fetch(url);
+        try {
+            return (await response.json());
+        }
+        catch {
+            throw new HttpError("Upstream returned invalid JSON.", url, response.status);
+        }
+    }
+    async getText(url) {
+        const response = await this.fetch(url);
+        return response.text();
+    }
+    async fetch(url) {
+        let lastError;
+        for (let attempt = 0; attempt <= this.retries; attempt += 1) {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
+            try {
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                    headers: {
+                        "user-agent": this.userAgent,
+                        accept: "application/json,text/html;q=0.9,*/*;q=0.8",
+                    },
+                });
+                if (response.ok) {
+                    return response;
+                }
+                if (!RETRY_STATUSES.has(response.status) || attempt === this.retries) {
+                    throw new HttpError(`Upstream request failed with HTTP ${response.status}.`, url, response.status);
+                }
+            }
+            catch (error) {
+                lastError = error;
+                if (error instanceof HttpError && (!RETRY_STATUSES.has(error.status ?? 0) || attempt === this.retries)) {
+                    throw error;
+                }
+                if (attempt === this.retries) {
+                    throw new HttpError(error instanceof Error ? error.message : "Upstream request failed.", url);
+                }
+            }
+            finally {
+                clearTimeout(timeout);
+            }
+            await delay(250 * 2 ** attempt);
+        }
+        throw new HttpError(lastError instanceof Error ? lastError.message : "Upstream request failed.", url);
+    }
+}
+function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+//# sourceMappingURL=http.js.map

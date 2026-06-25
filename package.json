@@ -1,0 +1,58 @@
+{
+  "name": "hncli",
+  "version": "0.1.0",
+  "description": "Agent-friendly Hacker News CLI for search, stories, comments, users, and live HN lists.",
+  "author": "Ian Nuttall",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@11.8.0",
+  "bin": {
+    "hncli": "dist/cli.js"
+  },
+  "files": [
+    "dist/",
+    "skills/",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "hacker-news",
+    "hn",
+    "cli",
+    "search",
+    "agents"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iannuttall/hncli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iannuttall/hncli/issues"
+  },
+  "homepage": "https://github.com/iannuttall/hncli#readme",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "lint": "tsc --noEmit && node --check dist/cli.js",
+    "test": "pnpm run build && node --test tests/*.test.mjs",
+    "prepare": "pnpm run build",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "commander": "^14.0.2",
+    "defuddle": "^0.19.1",
+    "he": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/he": "^1.2.3",
+    "@types/node": "^25.0.3",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
