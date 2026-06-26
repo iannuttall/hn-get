@@ -70,7 +70,7 @@ export class HackerNewsClient {
         }
         return normalized;
     }
-    async user(username) {
+    async user(username, options = {}) {
         const cleanUsername = username.trim();
         if (!cleanUsername) {
             throw new Error("Username is required.");
@@ -79,13 +79,7 @@ export class HackerNewsClient {
         if (!user) {
             throw new Error(`Hacker News user ${cleanUsername} was not found.`);
         }
-        return {
-            ...user,
-            createdAt: toIsoFromUnix(user.created),
-            aboutPlain: htmlToPlainText(user.about),
-            hnUrl: `${HN_BASE}/user?id=${encodeURIComponent(user.id)}`,
-            submittedCount: Array.isArray(user.submitted) ? user.submitted.length : 0,
-        };
+        return normalizeHnUser(user, options);
     }
     async submitted(username, options = {}) {
         const type = options.type === "all" || !options.type ? "all" : options.type;
@@ -265,6 +259,25 @@ export function normalizeHnItem(item) {
         dead: item.dead,
         deleted: item.deleted,
     });
+}
+export function normalizeHnUser(user, options = {}) {
+    const submitted = Array.isArray(user.submitted) ? user.submitted : [];
+    const profile = compactObject({
+        id: user.id,
+        created: user.created,
+        createdAt: toIsoFromUnix(user.created),
+        karma: user.karma,
+        about: user.about,
+        aboutPlain: htmlToPlainText(user.about),
+        hnUrl: `${HN_BASE}/user?id=${encodeURIComponent(user.id)}`,
+        submittedCount: submitted.length,
+    });
+    if (options.includeSubmitted) {
+        const limit = options.submittedLimit === undefined ? submitted.length : clampInt(options.submittedLimit, 0, submitted.length);
+        profile.submitted = submitted.slice(0, limit);
+        profile.submittedReturned = profile.submitted.length;
+    }
+    return profile;
 }
 function normalizeComment(item) {
     return compactObject({

@@ -88,11 +88,14 @@ Inspect users:
 
 ```bash
 hn-get user pg
+hn-get user pg --submitted-limit 20
 hn-get submitted pg --limit 20
 hn-get threads pg --limit 20
 hn-get replies pg --limit 20
 hn-get favorites pg --limit 20
 ```
+
+`hn-get user` omits the full submitted ID list by default. Use `--submitted-limit <count>` when you need some IDs, or `--submitted` when the full list is really needed.
 
 Search hiring threads:
 

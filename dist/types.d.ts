@@ -24,6 +24,18 @@ export interface HnUser {
     about?: string;
     submitted?: number[];
 }
+export interface NormalizedUser {
+    id: string;
+    created?: number;
+    createdAt?: string;
+    karma?: number;
+    about?: string;
+    aboutPlain?: string;
+    hnUrl: string;
+    submittedCount: number;
+    submitted?: number[];
+    submittedReturned?: number;
+}
 export interface CommentNode {
     id: number;
     by?: string;

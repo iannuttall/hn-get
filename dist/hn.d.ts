@@ -1,5 +1,5 @@
 import { HttpClient } from "./http.js";
-import type { HnItem, HnUser, NormalizedItem, SearchResponse } from "./types.js";
+import type { HnItem, HnUser, NormalizedItem, NormalizedUser, SearchResponse } from "./types.js";
 export type LiveListName = "top" | "new" | "best" | "ask" | "show" | "jobs";
 export type ScrapedListName = "frontpage" | "active" | "classic" | "launches" | "invited" | "pool" | "bestcomments";
 export type SortMode = "date" | "points";
@@ -23,6 +23,10 @@ export interface ItemOptions {
     depth?: number;
     commentsLimit?: number;
 }
+export interface UserOptions {
+    includeSubmitted?: boolean;
+    submittedLimit?: number;
+}
 export declare class HackerNewsClient {
     readonly http: HttpClient;
     constructor(http?: HttpClient);
@@ -31,12 +35,7 @@ export declare class HackerNewsClient {
     scrapedList(name: ScrapedListName, limit?: number): Promise<NormalizedItem[]>;
     favorites(username: string, limit?: number): Promise<NormalizedItem[]>;
     item(id: number, options?: ItemOptions): Promise<NormalizedItem>;
-    user(username: string): Promise<HnUser & {
-        createdAt?: string;
-        aboutPlain?: string;
-        hnUrl: string;
-        submittedCount: number;
-    }>;
+    user(username: string, options?: UserOptions): Promise<NormalizedUser>;
     submitted(username: string, options?: {
         limit?: number;
         type?: "story" | "comment" | "all";
@@ -60,3 +59,4 @@ export declare function buildSearchParams(options: SearchOptions & {
 }): URLSearchParams;
 export declare function extractAthingIds(html: string): number[];
 export declare function normalizeHnItem(item: HnItem): NormalizedItem;
+export declare function normalizeHnUser(user: HnUser, options?: UserOptions): NormalizedUser;

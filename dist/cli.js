@@ -125,6 +125,8 @@ program
     .description("Fetch a Hacker News user profile")
     .addOption(createOutputOption())
     .option("--feed", "return user activity feed instead of the profile")
+    .option("--submitted", "include submitted item ids in profile output")
+    .option("--submitted-limit <count>", "submitted item ids to include, max 5000")
     .option("-l, --limit <count>", "feed results to return when --feed is set, max 100", "20")
     .action(withErrorHandling(async (username, options) => {
     if (options.feed) {
@@ -134,7 +136,7 @@ program
         }), options.format);
         return;
     }
-    await printOutput(await client.user(username), options.format);
+    await printOutput(await client.user(username, parseUserOptions(options)), options.format);
 }));
 program
     .command("user-feed <username>")
@@ -151,8 +153,10 @@ program
     .command("profile <username>")
     .description("Alias for user profile")
     .addOption(createOutputOption())
+    .option("--submitted", "include submitted item ids in profile output")
+    .option("--submitted-limit <count>", "submitted item ids to include, max 5000")
     .action(withErrorHandling(async (username, options) => {
-    await printOutput(await client.user(username), options.format);
+    await printOutput(await client.user(username, parseUserOptions(options)), options.format);
 }));
 program
     .command("submitted <username>")
@@ -225,6 +229,12 @@ function createOutputOption() {
     return new Option("-f, --format <format>", "output format")
         .choices(["json", "compact", "ndjson", "markdown", "text"])
         .default("json");
+}
+function parseUserOptions(options) {
+    return {
+        includeSubmitted: Boolean(options.submitted || options.submittedLimit),
+        submittedLimit: options.submittedLimit === undefined ? undefined : parseNonNegativeInt(options.submittedLimit, "--submitted-limit", { max: 5000 }),
+    };
 }
 function addSearchFeedCommand(command, description, config) {
     const subcommand = program

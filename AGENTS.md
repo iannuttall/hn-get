@@ -42,7 +42,8 @@ Use `pnpm run dev -- <command>` while developing. Use `node dist/cli.js <command
 - `item <id>` returns the Firebase item by default.
 - `item <id> --comments` fetches a bounded comment tree.
 - `item <id> --feed` returns searchable comments for that item.
-- `user <username>` returns the Firebase user profile.
+- `user <username>` returns a compact profile and `submittedCount`.
+- `user <username> --submitted-limit <count>` includes submitted item IDs.
 - `user <username> --feed` returns user activity.
 
 Do not make commands crawl linked article URLs by default. This CLI fetches Hacker News data. Pulling external article pages changes runtime, failure modes, and user expectations.

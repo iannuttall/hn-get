@@ -1,6 +1,6 @@
 import he from "he";
 import { HttpClient } from "./http.js";
-import type { AlgoliaHit, AlgoliaResponse, CommentNode, HnItem, HnUser, NormalizedItem, SearchResponse, SearchResult } from "./types.js";
+import type { AlgoliaHit, AlgoliaResponse, CommentNode, HnItem, HnUser, NormalizedItem, NormalizedUser, SearchResponse, SearchResult } from "./types.js";
 import { compactObject, hnItemUrl, htmlToPlainText, mapLimit, parseDateishToUnix, toIsoFromUnix } from "./utils.js";
 
 const HN_API_BASE = "https://hacker-news.firebaseio.com/v0";
@@ -37,6 +37,11 @@ export interface ItemOptions {
   comments?: boolean;
   depth?: number;
   commentsLimit?: number;
+}
+
+export interface UserOptions {
+  includeSubmitted?: boolean;
+  submittedLimit?: number;
 }
 
 export class HackerNewsClient {
@@ -110,7 +115,7 @@ export class HackerNewsClient {
     return normalized;
   }
 
-  async user(username: string): Promise<HnUser & { createdAt?: string; aboutPlain?: string; hnUrl: string; submittedCount: number }> {
+  async user(username: string, options: UserOptions = {}): Promise<NormalizedUser> {
     const cleanUsername = username.trim();
     if (!cleanUsername) {
       throw new Error("Username is required.");
@@ -121,13 +126,7 @@ export class HackerNewsClient {
       throw new Error(`Hacker News user ${cleanUsername} was not found.`);
     }
 
-    return {
-      ...user,
-      createdAt: toIsoFromUnix(user.created),
-      aboutPlain: htmlToPlainText(user.about),
-      hnUrl: `${HN_BASE}/user?id=${encodeURIComponent(user.id)}`,
-      submittedCount: Array.isArray(user.submitted) ? user.submitted.length : 0,
-    };
+    return normalizeHnUser(user, options);
   }
 
   async submitted(username: string, options: { limit?: number; type?: "story" | "comment" | "all" } = {}): Promise<SearchResponse> {
@@ -339,6 +338,28 @@ export function normalizeHnItem(item: HnItem): NormalizedItem {
     dead: item.dead,
     deleted: item.deleted,
   });
+}
+
+export function normalizeHnUser(user: HnUser, options: UserOptions = {}): NormalizedUser {
+  const submitted = Array.isArray(user.submitted) ? user.submitted : [];
+  const profile: NormalizedUser = compactObject({
+    id: user.id,
+    created: user.created,
+    createdAt: toIsoFromUnix(user.created),
+    karma: user.karma,
+    about: user.about,
+    aboutPlain: htmlToPlainText(user.about),
+    hnUrl: `${HN_BASE}/user?id=${encodeURIComponent(user.id)}`,
+    submittedCount: submitted.length,
+  });
+
+  if (options.includeSubmitted) {
+    const limit = options.submittedLimit === undefined ? submitted.length : clampInt(options.submittedLimit, 0, submitted.length);
+    profile.submitted = submitted.slice(0, limit);
+    profile.submittedReturned = profile.submitted.length;
+  }
+
+  return profile;
 }
 
 function normalizeComment(item: HnItem): CommentNode {

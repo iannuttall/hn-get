@@ -81,12 +81,15 @@ hn-get replies 40956979
 
 ```bash
 hn-get user pg
+hn-get user pg --submitted-limit 20
 hn-get user pg --feed
 hn-get submitted pg
 hn-get threads pg
 hn-get replies pg
 hn-get favorites pg
 ```
+
+`user` returns the profile plus `submittedCount`. It does not print the full submitted ID list unless you add `--submitted` or `--submitted-limit`.
 
 ## Search hiring threads
 

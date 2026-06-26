@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildSearchParams, extractAthingIds, normalizeHnItem } from "../dist/hn.js";
+import { buildSearchParams, extractAthingIds, normalizeHnItem, normalizeHnUser } from "../dist/hn.js";
 import { htmlFragmentToMarkdown } from "../dist/markdown.js";
 import { htmlToPlainText, parseDateishToUnix } from "../dist/utils.js";
 
@@ -70,6 +70,38 @@ test("normalizeHnItem includes canonical HN URL and plain text", () => {
 test("parseDateishToUnix handles relative days", () => {
   const now = new Date("2026-06-25T12:00:00.000Z");
   assert.equal(parseDateishToUnix("7d", now), 1_781_784_000);
+});
+
+test("normalizeHnUser omits submitted ids by default", () => {
+  assert.deepEqual(
+    normalizeHnUser({
+      id: "pg",
+      created: 1_160_418_092,
+      karma: 157_316,
+      about: "Bug&nbsp;fixer.",
+      submitted: [1, 2, 3],
+    }),
+    {
+      id: "pg",
+      created: 1_160_418_092,
+      createdAt: "2006-10-09T18:21:32.000Z",
+      karma: 157_316,
+      about: "Bug&nbsp;fixer.",
+      aboutPlain: "Bug fixer.",
+      hnUrl: "https://news.ycombinator.com/user?id=pg",
+      submittedCount: 3,
+    },
+  );
+});
+
+test("normalizeHnUser includes submitted ids when requested", () => {
+  assert.deepEqual(normalizeHnUser({ id: "pg", submitted: [1, 2, 3] }, { includeSubmitted: true, submittedLimit: 2 }), {
+    id: "pg",
+    hnUrl: "https://news.ycombinator.com/user?id=pg",
+    submittedCount: 3,
+    submitted: [1, 2],
+    submittedReturned: 2,
+  });
 });
 
 test("htmlFragmentToMarkdown converts HN HTML through Defuddle", async () => {

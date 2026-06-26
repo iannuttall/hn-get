@@ -1,6 +1,6 @@
 {
   "name": "hn-get",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Agent-friendly Hacker News CLI for search, stories, comments, users, and live HN lists.",
   "author": "Ian Nuttall",
   "license": "MIT",
