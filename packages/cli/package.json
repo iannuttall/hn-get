@@ -1,0 +1,70 @@
+{
+  "name": "hn-get",
+  "version": "0.1.1",
+  "description": "Hacker News data pipeline with a CLI and stdio MCP server.",
+  "author": "Ian Nuttall",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "hn-get": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "hacker-news",
+    "hn",
+    "cli",
+    "mcp",
+    "rss",
+    "agents"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iannuttall/hn-get.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iannuttall/hn-get/issues"
+  },
+  "homepage": "https://hn-get.iann.workers.dev",
+  "scripts": {
+    "build": "tsdown --config tsdown.config.ts",
+    "clean": "rm -rf dist",
+    "dev": "tsx src/cli.ts",
+    "lint": "tsc -p tsconfig.json --noEmit && node --check dist/cli.js",
+    "prepack": "pnpm run build",
+    "test": "node --test tests/*.test.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "commander": "^14.0.2",
+    "defuddle": "^0.19.1",
+    "he": "^1.2.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@hn-get/core": "workspace:*",
+    "@hn-get/mcp": "workspace:*",
+    "tsdown": "^0.22.4",
+    "tsx": "^4.23.0"
+  },
+  "engines": {
+    "node": ">=24.11"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

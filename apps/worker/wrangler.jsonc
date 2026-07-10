@@ -1,0 +1,45 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "hn-get",
+  "account_id": "6e426918d20366666af283a9a8cf3c92",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-09",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "../docs/dist",
+    "not_found_handling": "404-page",
+    "run_worker_first": [
+      "/health",
+      "/v1",
+      "/v1/*",
+      "/mcp",
+      "/rss/*",
+      "/newest",
+      "/frontpage",
+      "/newcomments",
+      "/ask",
+      "/show",
+      "/polls",
+      "/jobs",
+      "/best",
+      "/top",
+      "/active",
+      "/classic",
+      "/invited",
+      "/pool",
+      "/launches",
+      "/bestcomments",
+      "/user",
+      "/threads",
+      "/submitted",
+      "/replies",
+      "/item",
+      "/whoishiring",
+      "/whoishiring/*"
+    ]
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}

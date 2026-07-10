@@ -1,0 +1,33 @@
+---
+title: hn-get
+description: One Hacker News data pipeline for terminals, agents, apps, and feed readers.
+template: splash
+hero:
+  tagline: Hacker News data for terminals, agents, apps, and feed readers.
+  actions:
+    - text: Install hn-get
+      link: /getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/iannuttall/hn-get
+      icon: external
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+`hn-get` puts one tested Hacker News client behind five useful interfaces. JSON is the default, limits are bounded, and linked articles are never crawled behind your back.
+
+<CardGrid>
+  <Card title="CLI">
+    Search, inspect stories, browse live lists, and work with user activity from your terminal.
+  </Card>
+  <Card title="MCP">
+    Run a local stdio server with `npx hn-get mcp`, or connect to the remote Streamable HTTP endpoint.
+  </Card>
+  <Card title="HTTP API and RSS">
+    Use the same core data pipeline from an app, script, feed reader, or automation.
+  </Card>
+</CardGrid>
+
+Hacker News Firebase supplies live items, users, and official lists. Algolia supplies search, comments, and historical activity. A small parser covers the few useful public HN lists that have no API.

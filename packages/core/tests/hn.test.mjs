@@ -1,0 +1,121 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { buildSearchParams, extractAthingIds, normalizeHnItem, normalizeHnUser } from "../dist/hn.js";
+import { HttpClient } from "../dist/http.js";
+import { htmlToPlainText, parseDateishToUnix } from "../dist/utils.js";
+
+test("HttpClient preserves the global fetch receiver", async (t) => {
+  const originalFetch = globalThis.fetch;
+  let receiver;
+  globalThis.fetch = async function () {
+    receiver = this;
+    return Response.json({ ok: true });
+  };
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  const client = new HttpClient({ retries: 0 });
+  assert.deepEqual(await client.getJson("https://example.com/"), { ok: true });
+  assert.equal(receiver, globalThis);
+});
+
+test("extractAthingIds handles both common attribute orders and dedupes", () => {
+  const html = `
+    <tr class="athing submission" id="123"></tr>
+    <tr id="456" class="athing"></tr>
+    <tr class="athing" id="123"></tr>
+  `;
+
+  assert.deepEqual(extractAthingIds(html), [123, 456]);
+});
+
+test("buildSearchParams combines safe Algolia filters", () => {
+  const params = buildSearchParams({
+    query: "sqlite",
+    type: "story",
+    author: "pg",
+    points: 100,
+    comments: 10,
+    since: "2026-01-01",
+    limit: 25,
+    page: 2,
+  });
+
+  assert.equal(params.get("query"), "sqlite");
+  assert.equal(params.get("tags"), "story,author_pg");
+  assert.equal(params.get("hitsPerPage"), "25");
+  assert.equal(params.get("page"), "2");
+  assert.match(params.get("numericFilters") ?? "", /points>=100/);
+  assert.match(params.get("numericFilters") ?? "", /num_comments>=10/);
+  assert.match(params.get("numericFilters") ?? "", /created_at_i>=/);
+});
+
+test("htmlToPlainText decodes HN comment HTML", () => {
+  assert.equal(htmlToPlainText("<p>Hello&nbsp;world<p>Second<br>line"), "Hello world\n\nSecond\nline");
+});
+
+test("normalizeHnItem includes canonical HN URL and plain text", () => {
+  assert.deepEqual(
+    normalizeHnItem({
+      id: 1,
+      type: "story",
+      by: "pg",
+      time: 0,
+      title: "Title",
+      text: "<p>Hello&nbsp;HN",
+      score: 10,
+      descendants: 2,
+    }),
+    {
+      id: 1,
+      type: "story",
+      title: "Title",
+      hnUrl: "https://news.ycombinator.com/item?id=1",
+      by: "pg",
+      score: 10,
+      descendants: 2,
+      time: "1970-01-01T00:00:00.000Z",
+      timeUnix: 0,
+      text: "<p>Hello&nbsp;HN",
+      textPlain: "Hello HN",
+    },
+  );
+});
+
+test("parseDateishToUnix handles relative days", () => {
+  const now = new Date("2026-06-25T12:00:00.000Z");
+  assert.equal(parseDateishToUnix("7d", now), 1_781_784_000);
+});
+
+test("normalizeHnUser omits submitted ids by default", () => {
+  assert.deepEqual(
+    normalizeHnUser({
+      id: "pg",
+      created: 1_160_418_092,
+      karma: 157_316,
+      about: "Bug&nbsp;fixer.",
+      submitted: [1, 2, 3],
+    }),
+    {
+      id: "pg",
+      created: 1_160_418_092,
+      createdAt: "2006-10-09T18:21:32.000Z",
+      karma: 157_316,
+      about: "Bug&nbsp;fixer.",
+      aboutPlain: "Bug fixer.",
+      hnUrl: "https://news.ycombinator.com/user?id=pg",
+      submittedCount: 3,
+    },
+  );
+});
+
+test("normalizeHnUser includes submitted ids when requested", () => {
+  assert.deepEqual(normalizeHnUser({ id: "pg", submitted: [1, 2, 3] }, { includeSubmitted: true, submittedLimit: 2 }), {
+    id: "pg",
+    hnUrl: "https://news.ycombinator.com/user?id=pg",
+    submittedCount: 3,
+    submitted: [1, 2],
+    submittedReturned: 2,
+  });
+});

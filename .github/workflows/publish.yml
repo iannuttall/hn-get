@@ -1,4 +1,4 @@
-name: publish
+name: Publish npm package
 
 on:
   push:
@@ -8,10 +8,11 @@ on:
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
-      - "tsconfig.json"
-      - "src/**"
-      - "skills/**"
-      - "tests/**"
+      - "turbo.json"
+      - "tsconfig.base.json"
+      - "packages/core/**"
+      - "packages/mcp/**"
+      - "packages/cli/**"
       - "README.md"
       - "LICENSE"
 
@@ -22,27 +23,27 @@ permissions:
 jobs:
   npm:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.8.0
 
       - uses: actions/setup-node@v6
         with:
           node-version: 24
           registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
 
-      - name: Use latest pnpm
-        run: |
-          corepack enable
-          corepack prepare pnpm@latest --activate
-          pnpm --version
-
-      - name: Use latest npm
-        run: npm install -g npm@latest
+      - name: Use npm with trusted publishing support
+        run: npm install --global npm@latest
 
       - name: Check package version
         id: version
         run: |
-          LOCAL=$(node -p "require('./package.json').version")
+          LOCAL=$(node -p "require('./packages/cli/package.json').version")
           REMOTE=$(npm view hn-get version 2>/dev/null || echo "0.0.0")
           echo "local=$LOCAL" >> "$GITHUB_OUTPUT"
           echo "remote=$REMOTE" >> "$GITHUB_OUTPUT"
@@ -52,18 +53,12 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm security:audit
+      - run: pnpm check
+      - run: pnpm --filter hn-get pack --dry-run
 
-      - name: Test package
-        run: pnpm test
-
-      - name: Lint package
-        run: pnpm run lint
-
-      - name: Check package contents
-        run: pnpm pack --dry-run
-
-      - name: Publish to npm
+      - name: Publish through npm trusted publishing
         if: steps.version.outputs.changed == 'true'
-        run: npm publish --access public --provenance
+        working-directory: packages/cli
+        run: npm publish --access public

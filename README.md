@@ -1,151 +1,185 @@
 # hn-get
 
-`hn-get` is a Hacker News CLI for agents, scripts, and terminal use.
+`hn-get` is one Hacker News data pipeline with five clients.
 
-It fetches stories, comments, users, live lists, favorites, jobs, and search results. JSON is the default output because agents should not have to scrape terminal text. Markdown and text output are there when you want something easier to read.
+<p>
+  <a href="https://github.com/iannuttall/hn-get/actions/workflows/check.yml"><img alt="checks" src="https://img.shields.io/github/actions/workflow/status/iannuttall/hn-get/check.yml?branch=main&label=checks"></a>
+  <a href="https://www.npmjs.com/package/hn-get"><img alt="npm version" src="https://img.shields.io/npm/v/hn-get?label=npm"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-black"></a>
+</p>
 
-The CLI uses two public data sources.
+[Documentation](https://hn-get.iann.workers.dev) · [Security policy](SECURITY.md) · [MIT license](LICENSE)
 
-- Hacker News Firebase API for live items, users, and official story lists.
-- Algolia Hacker News Search API for full-text search, author feeds, comments, and older posts.
+- A JSON-first CLI for people, scripts, and agents
+- A local stdio MCP server
+- A Cloudflare Worker with a public HTTP API
+- A remote Streamable HTTP MCP server
+- RSS feeds for lists, searches, users, items, and hiring threads
 
-## Install hn-get
+Firebase supplies live items, users, and official lists. Algolia supplies search, comments, and historical activity. A small HTML parser covers public Hacker News pages such as active discussions and best comments.
+
+## Install the CLI and stdio MCP server
 
 ```bash
 npx hn-get help
-npm install -g hn-get
+npm install --global hn-get
 ```
 
-## Start with these commands
+JSON stays the default output.
 
 ```bash
 hn-get frontpage --limit 30
-hn-get search "sqlite" --limit 10
-hn-get search "vector database" --sort points --since 30d
-hn-get show --sort points --since 30d --limit 20
-hn-get item 40956979 --comments --depth 2 --comments-limit 20
-hn-get user pg
-hn-get comments "react compiler" --limit 10
+hn-get search "sqlite" --sort points --since 30d
+hn-get item 40956979 --comments --depth 2
+hn-get user pg --submitted-limit 20
 hn-get whoishiring jobs --limit 20
 ```
 
-## Search and filter Hacker News
+Readable Markdown, text, compact JSON, and NDJSON are available when needed.
 
 ```bash
-hn-get search "sqlite"
-hn-get comments "sqlite"
-hn-get search "llm" --type story --points 100 --comments 20
-hn-get search "postgres" --since 2025-01-01 --until 2025-12-31
-hn-get show --sort points --points 100 --comments 20
-```
-
-Search and section commands default to newest first. That is usually the closest match to the live site feed. Use `--sort points` when you want popular posts.
-
-Dates accept ISO dates or relative durations.
-
-- `24h`
-- `7d`
-- `2w`
-- `6mo`
-- `1y`
-
-## Browse live lists and sections
-
-```bash
-hn-get top
-hn-get newest
-hn-get frontpage
-hn-get best
-hn-get active
-hn-get ask
-hn-get show
-hn-get jobs
-hn-get polls
-hn-get launches
-hn-get bestcomments
-```
-
-## Read stories and comments
-
-```bash
-hn-get item 40956979
-hn-get item 40956979 --comments
-hn-get item 40956979 --feed
-hn-get item-comments 40956979 "sqlite"
-hn-get replies 40956979
-```
-
-`item` returns the Firebase item by default. Add `--comments` when you want a bounded comment tree. Add `--feed` when you want searchable comment results for that item.
-
-## Get user activity
-
-```bash
-hn-get user pg
-hn-get user pg --submitted-limit 20
-hn-get user pg --feed
-hn-get submitted pg
-hn-get threads pg
-hn-get replies pg
-hn-get favorites pg
-```
-
-`user` returns the profile plus `submittedCount`. It does not print the full submitted ID list unless you add `--submitted` or `--submitted-limit`.
-
-## Search hiring threads
-
-```bash
-hn-get whoishiring
-hn-get whoishiring jobs
-hn-get whoishiring hired
-hn-get whoishiring freelance
-```
-
-## Choose an output format
-
-Default output is pretty JSON.
-
-```bash
-hn-get search "rust" --format json
-hn-get frontpage --format compact
-hn-get newest --format ndjson
 hn-get show --sort points --format markdown
-hn-get item 40956979 --comments --format text
+hn-get newest --format ndjson
 ```
 
-The output formats are:
+## Connect the local MCP server
 
-| Format | Use it when |
+The npm package runs its stdio server through the main CLI.
+
+A client config looks like this.
+
+```json
+{
+  "mcpServers": {
+    "hacker-news": {
+      "command": "npx",
+      "args": ["-y", "hn-get", "mcp"]
+    }
+  }
+}
+```
+
+The shared MCP package exposes these tools.
+
+| Tool | What it returns |
 | --- | --- |
-| `json` | You want readable structured output. |
-| `compact` | You want compact JSON for scripts. |
-| `ndjson` | You want one JSON object per row. |
-| `markdown` | You want readable Markdown. HN HTML is converted with Defuddle. |
-| `text` | You want a plain terminal view. |
+| `hn_search` | Filtered Algolia search results |
+| `hn_list` | Live, searchable, or HTML-backed HN lists |
+| `hn_item` | One item with an optional bounded comment tree |
+| `hn_item_comments` | Searchable comments for one item |
+| `hn_user` | A compact user profile |
+| `hn_user_activity` | Submissions, comments, or threads |
+| `hn_replies` | Replies to an item or recent user comments |
+| `hn_who_is_hiring` | Results from the current hiring threads |
 
-## Get command help
+## Use the Worker API
 
-Help is available at root and for every subcommand.
+The Worker serves the API at `/v1`.
 
-```bash
-hn-get help
-hn-get help search
-hn-get item --help
+```text
+GET /v1/search?q=sqlite&sort=points&limit=20
+GET /v1/lists/frontpage?limit=30
+GET /v1/items/40956979?comments=true&depth=2
+GET /v1/items/40956979/comments?q=sqlite
+GET /v1/users/pg
+GET /v1/users/pg/activity?type=story
+GET /v1/replies/40956979
+GET /v1/whoishiring/jobs
 ```
 
-## Limits that keep commands safe
+Responses are JSON. Limits are bounded and bad input returns a JSON error with a useful HTTP status.
 
-- Search results are capped at 100 per command.
-- List results are capped at 500 per command.
-- Comment tree fetching is capped and depth-limited.
-- Upstream network calls use timeouts and retries.
-- The CLI does not use auth, cookies, browser state, credentials, or local config.
+The remote MCP endpoint is `/mcp`. It uses stateless Streamable HTTP, so it shares the same tools without a Durable Object or session database.
 
-## Work on the package locally
+## Subscribe to RSS feeds
+
+RSS routes work under `/rss`.
+
+```text
+GET /rss/newest
+GET /rss/frontpage?count=30
+GET /rss/newcomments?q=sqlite
+GET /rss/item?id=40956979
+GET /rss/user?id=pg
+GET /rss/whoishiring/jobs?q=typescript
+```
+
+The old hnfeed-style paths also work without the `/rss` prefix, including `/newest`, `/item`, and `/whoishiring/jobs`.
+
+Supported feed parameters include `q`, `points`, `comments`, `count`, `description`, `link`, `id`, and `author`.
+
+## How the repo is split
+
+```text
+apps/worker
+  Cloudflare HTTP API, RSS routes, and remote MCP transport
+
+apps/docs
+  Starlight documentation served as Worker static assets
+
+packages/core
+  Hacker News and Algolia clients, normalization, limits, and parsing
+
+packages/rss
+  Feed routing and RSS rendering over core results
+
+packages/mcp
+  One MCP tool registry shared by remote HTTP and local stdio
+
+packages/cli
+  Published hn-get package, terminal output, and stdio entry point
+```
+
+Core owns Hacker News behavior. Each client only parses its input, calls core, and formats the result. Fixing a query or normalization bug once fixes every client.
+
+## Work on it locally
 
 ```bash
 corepack enable
 pnpm install
-pnpm run build
-pnpm test
-pnpm run lint
+pnpm check
+pnpm security:check
+pnpm pack:dry-run
+pnpm worker:deploy:dry-run
 ```
+
+Useful development commands are:
+
+```bash
+pnpm dev
+pnpm dev:docs
+pnpm dev:cli -- search sqlite
+pnpm types
+pnpm build
+pnpm test
+pnpm lint
+pnpm typecheck
+```
+
+Wrangler config lives in `apps/worker/wrangler.jsonc`. It has no account id, route, or secret. A Cloudflare Git build should use the repo root with `pnpm build` as the build command and `pnpm worker:deploy` as the deploy command.
+
+## Publish through npm trusted publishing
+
+`.github/workflows/publish.yml` checks the package version on every relevant push to `main`. A changed version runs the full checks, inspects the tarball, and publishes with npm OIDC. There is no long-lived `NPM_TOKEN`.
+
+Configure the `hn-get` package on npm with these trusted publisher values.
+
+| Setting | Value |
+| --- | --- |
+| Provider | GitHub Actions |
+| Owner | `iannuttall` |
+| Repository | `hn-get` |
+| Workflow | `publish.yml` |
+| Allowed action | `npm publish` |
+
+Then bump `packages/cli/package.json` when a release is ready. The root version is only repo metadata.
+
+## Data and output rules
+
+- JSON remains the CLI and HTTP default.
+- Search results are capped at 100 per request.
+- Lists are capped at 500 items.
+- Comment trees are depth and count limited.
+- Upstream calls use timeouts and conservative retries.
+- No client crawls linked article pages.
+- There is no auth, cookie state, or hidden local config.

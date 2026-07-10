@@ -1,58 +1,37 @@
 {
-  "name": "hn-get",
+  "name": "hn-get-monorepo",
+  "private": true,
   "version": "0.1.1",
-  "description": "Agent-friendly Hacker News CLI for search, stories, comments, users, and live HN lists.",
-  "author": "Ian Nuttall",
   "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@11.8.0",
-  "bin": {
-    "hn-get": "dist/cli.js"
+  "engines": {
+    "node": ">=24.11"
   },
-  "files": [
-    "dist/",
-    "skills/",
-    "README.md",
-    "LICENSE"
-  ],
-  "keywords": [
-    "hacker-news",
-    "hn",
-    "cli",
-    "search",
-    "agents"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/iannuttall/hn-get.git"
-  },
-  "bugs": {
-    "url": "https://github.com/iannuttall/hn-get/issues"
-  },
-  "homepage": "https://github.com/iannuttall/hn-get#readme",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx src/cli.ts",
-    "lint": "tsc --noEmit && node --check dist/cli.js",
-    "test": "pnpm run build && node --test tests/*.test.mjs",
-    "prepare": "pnpm run build",
-    "prepack": "pnpm run build"
-  },
-  "dependencies": {
-    "commander": "^14.0.2",
-    "defuddle": "^0.19.1",
-    "he": "^1.2.0"
+    "build": "turbo run build",
+    "check": "pnpm build && pnpm typecheck && pnpm test && pnpm lint",
+    "clean": "turbo run clean",
+    "dev": "pnpm --filter @hn-get/worker dev",
+    "dev:cli": "pnpm --filter hn-get dev",
+    "dev:docs": "pnpm --filter @hn-get/docs dev",
+    "lint": "biome check . && turbo run lint",
+    "lint:fix": "biome check . --write",
+    "pack:dry-run": "pnpm --filter hn-get pack --dry-run",
+    "security:audit": "pnpm audit --audit-level moderate",
+    "security:check": "pnpm run security:audit && pnpm run security:secrets",
+    "security:secrets": "node scripts/security-secrets.mjs",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "types": "pnpm --filter @hn-get/worker types",
+    "types:check": "pnpm --filter @hn-get/worker types:check",
+    "worker:deploy": "pnpm --filter @hn-get/docs build && pnpm --filter @hn-get/worker run deploy",
+    "worker:deploy:dry-run": "pnpm --filter @hn-get/worker deploy:dry-run"
   },
   "devDependencies": {
-    "@types/he": "^1.2.3",
-    "@types/node": "^25.0.3",
-    "tsx": "^4.22.4",
+    "@biomejs/biome": "^2.5.3",
+    "@types/node": "^24.0.0",
+    "turbo": "^2.10.4",
     "typescript": "^5.9.3"
-  },
-  "engines": {
-    "node": ">=20"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }
