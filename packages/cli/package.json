@@ -48,7 +48,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/sdk": "^1.32.0",
     "commander": "^14.0.2",
     "defuddle": "^0.19.1",
     "he": "^1.2.0",
