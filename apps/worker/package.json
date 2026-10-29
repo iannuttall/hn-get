@@ -19,15 +19,15 @@
     "@hn-get/core": "workspace:*",
     "@hn-get/mcp": "workspace:*",
     "@hn-get/rss": "workspace:*",
-    "@modelcontextprotocol/sdk": "^1.29.0",
-    "hono": "^4.12.28",
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "hono": "^4.13.11",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@hn-get/docs": "workspace:*",
     "@cloudflare/vitest-pool-workers": "^0.18.4",
     "@cloudflare/workers-types": "^5.20260708.1",
-    "vitest": "^4.1.10",
+    "vitest": "^5.0.5",
     "wrangler": "^4.110.0"
   }
 }
